@@ -23,6 +23,12 @@ _CIFAR_10_MD5_ = "c58f30108f718f92721af3b95e74349a"
 _PATH_CPICKLE_ = "DATA/cifar-10-batches-py/"
 _PATH_ARCHIVE_ = "DATA/archive.tar.gz"
 _PATH_EXTRACT_ = "DATA/"
+_FILES_TRAIN_ = "data_batch*"
+_FILES_TEST_ = "test_batch*"
+_FILE_META_ = "batches.meta"
+_KEY_X_ = b'data'
+_KEY_Y_ = b'labels'
+_KEY_L_ = b'label_names'
 
 # Logic
 
@@ -72,14 +78,14 @@ def __cifar_extract():
     tar.extractall(path = _PATH_EXTRACT_)
     tar.close()
 
-def __unpickle(file):
-    print("Loading %s..." % file, end="")
+def __cifar_unpickle(file):
+    #print("Loading %s..." % file, end="")
     with open(file, 'rb') as fo:
         dict = pickle.load(fo, encoding='bytes')
     return dict
-    print(" ok")
+    #print(" ok")
 
-def __cifar_download():
+def cifar_download():
     print("--> Loading CIFAR-10...")
     state = __cifar_exists()
     if state == True:
@@ -97,10 +103,31 @@ def __cifar_download():
     __cifar_extract()
     print("--> CIFAR-10 loaded sucessfully")
 
-def cifar_load():
+def __cifar_load_batch(pattern):
     if not os.path.exists(_PATH_CPICKLE_):
         raise Exception("Data not found. Run cifar.py as a script to download the data!")
-    print(glob.glob(_PATH_CPICKLE_ + "data_batch_*"))
+    files = glob.glob(_PATH_CPICKLE_ + pattern)
+    batch = __cifar_unpickle(files[0])
+    X = batch[_KEY_X_]
+    y = batch[_KEY_Y_]
+    for file in range(1, len(files)):
+        batch = __cifar_unpickle(files[file])
+        X = np.append(X, batch[_KEY_X_], axis=0)
+        y = np.append(y, batch[_KEY_Y_])
+    assert(X.shape[0] == len(y))
+    return X, y
+
+def cifar_ready():
+    return os.path.exists(_PATH_CPICKLE_)
+
+def cifar_load_train():
+    return __cifar_load_batch(_FILES_TRAIN_)
+
+def cifar_load_test():
+    return __cifar_load_batch(_FILES_TEST_)
+
+def cifar_load_labels():
+    return __cifar_unpickle(_PATH_CPICKLE_ + _FILE_META_)[_KEY_L_]
 
 if __name__ == "__main__":
-    __cifar_download()
+    cifar_download()

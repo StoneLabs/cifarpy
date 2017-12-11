@@ -5,7 +5,19 @@ Simple python CIFAR-10 interface.
 # Get started
 
 To download the data run ```python cifar.py```.
-Loading the data is not supported yet.
+
+See the following code for a small example (or [this file](example.py)):
+```
+#!python
+# If the data is not ready (i.e. not downloaded)
+if not cifar_ready():
+    cifar_download() # Download the data
+
+# Load training/test data and label names
+X_train, y_train = cifar_load_train()
+X_test, y_test = cifar_load_test()
+labels = cifar_load_labels()	
+```
 
 Unlicense (Public Domain)
 ============================
